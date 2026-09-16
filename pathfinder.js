@@ -13,7 +13,7 @@ for (let y = 0; y < gridSize; y++) {
     }
 }
 
-    grid[0][0] = 0;
+    grid[startY][startX] = 0;
 
     let walls = [];
     const dirs = [
@@ -24,8 +24,11 @@ for (let y = 0; y < gridSize; y++) {
     ];
 
     if (gridSize > 1) {
-        walls.push([1, 0]);
-        walls.push([0, 1]);
+        // seed the cells touching the start corner
+        if (startX > 0) walls.push([startX - 1, startY]);
+        if (startX < gridSize - 1) walls.push([startX + 1, startY]);
+        if (startY > 0) walls.push([startX, startY - 1]);
+        if (startY < gridSize - 1) walls.push([startX, startY + 1]);
     }
 
     while (walls.length > 0) {
@@ -68,10 +71,14 @@ for (let y = 0; y < gridSize; y++) {
     }
 
     // FINAL EXIT FIX (important)
-    grid[gridSize - 1][gridSize - 1] = 0;
+    grid[exitY][exitX] = 0;
 
 if (gridSize > 1) {
-    grid[gridSize - 2][gridSize - 1] = 0;
+    if (exitY < gridSize - 1) {
+        grid[exitY + 1][exitX] = 0;
+    } else {
+        grid[exitY - 1][exitX] = 0;
+    }
 }
     }
 function isSolvable(grid, size) {
@@ -79,8 +86,8 @@ function isSolvable(grid, size) {
         Array(size).fill(false)
     );
 
-    let queue = [{ x: 0, y: 0 }];
-    visited[0][0] = true;
+    let queue = [{ x: startX, y: startY }];
+    visited[startY][startX] = true;
 
     const dirs = [
         [1,0], [-1,0], [0,1], [0,-1]
@@ -89,7 +96,7 @@ function isSolvable(grid, size) {
     while (queue.length) {
         let { x, y } = queue.shift();
 
-        if (x === size - 1 && y === size - 1) return true;
+        if (x === exitX && y === exitY) return true;
 
         for (let [dx, dy] of dirs) {
             let nx = x + dx;

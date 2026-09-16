@@ -228,11 +228,22 @@ const messageText = document.getElementById("message");
 
 const MAX_LEVEL_SIZE = 15;
 const START_SIZE = 8;
+const HARD_START_SIZE = 12;        // hard mode's maze side length
+const HARDCORE_SIZE_BONUS = 4;     // hardcore starts this many squares wider per side
+const HARDCORE_MAX_SIZE = 20;      // hardcore grows past the normal 15 cap
+const HARDCORE_TIME = 25;          // hardcore never time scales: flat 25s every level
+const HARDCORE_UNLOCK_LEVEL = 20;  // reach level 20 on hard mode to unlock it
+const HARDCORE_MUSIC_RATE = 1.5;   // hardcore plays the soundtrack 1.5x faster
+const BASE_TIME = 30;              // seconds granted on level 1
+const TIME_PER_LEVEL = 0.5;        // extra seconds granted for every level cleared
 
 /* ===== BACKGROUND MUSIC ===== */
 const bgm = document.getElementById("bgm");
 
 bgm.volume = 0.4;
+
+// hardcore runs the soundtrack 1.5x faster
+bgm.playbackRate = mode === "hardcore" ? HARDCORE_MUSIC_RATE : 1;
 
 // true while the game over jingle owns the audio, keeps the song from creeping back in
 let deathSequenceActive = false;
@@ -304,13 +315,20 @@ let level = 1;
 let gridSize = START_SIZE;
 let grid = [];
 
+// level corners: hardcore flips the start and the exit on every level
+let startX = 0;
+let startY = 0;
+let exitX = 0;
+let exitY = 0;
+
 let maze = [];
 let queue = [];
 
 let inputPhase = true;
 let executing = false;
 
-let timer = 30;
+let timer = BASE_TIME;
+let timerBudget = BASE_TIME;
 let timerInterval;
 
 let player = {x:0,y:0};
@@ -334,8 +352,44 @@ if (mode === "medium") {
 }
 
 if (mode === "hard") {
-    gridSize = 12;
+    gridSize = HARD_START_SIZE;
     timer = 20;
+}
+
+if (mode === "hardcore") {
+    gridSize = HARD_START_SIZE + HARDCORE_SIZE_BONUS;
+    timer = HARDCORE_TIME;
+}
+
+function levelTime(){
+    // hardcore never time scales, every other mode gains TIME_PER_LEVEL a level
+    if(mode === "hardcore") return HARDCORE_TIME;
+
+    return BASE_TIME + (level - 1) * TIME_PER_LEVEL;
+}
+
+function maxGridSize(){
+    // the normal cap would freeze a 16 wide hardcore maze at its starting size
+    if(mode === "hardcore") return HARDCORE_MAX_SIZE;
+
+    return MAX_LEVEL_SIZE;
+}
+
+function setCorners(){
+    // hardcore flips the start and the exit corners on every level
+    const flip = mode === "hardcore" && level % 2 === 1;
+
+    if(flip){
+        startX = gridSize - 1;
+        startY = gridSize - 1;
+        exitX = 0;
+        exitY = 0;
+    }else{
+        startX = 0;
+        startY = 0;
+        exitX = gridSize - 1;
+        exitY = gridSize - 1;
+    }
 }
 
 function startLevel(){
@@ -343,14 +397,19 @@ function startLevel(){
     inputPhase = true;
     executing = false;
 
-    player = {x:0,y:0};
-    executionPlayer = {x:0,y:0};
+    setCorners();
 
-    timer = 30;
+    player = {x:startX,y:startY};
+    executionPlayer = {x:startX,y:startY};
+
+    timerBudget = levelTime();
+    timer = timerBudget;
 
     levelText.textContent = level;
     modeText.textContent = "INPUT PHASE";
     messageText.textContent = "";
+    timerText.textContent = timer;
+    timerBar.style.width = "100%";
     do {
     generateMaze();
 } while (!isSolvable(grid, gridSize));
@@ -364,7 +423,7 @@ function startTimer(){
     timer--;
     timerText.textContent = timer;
 
-    let percent = (timer / 30) * 100;
+    let percent = (timer / timerBudget) * 100;
     timerBar.style.width = percent + "%";
 
     if(timer <= 0){
@@ -391,8 +450,8 @@ function beginExecution(){
             clearInterval(playback);
 
             if(
-                executionPlayer.x === gridSize - 1 &&
-                executionPlayer.y === gridSize - 1
+                executionPlayer.x === exitX &&
+                executionPlayer.y === exitY
             ){
                 levelComplete();
             }else{
@@ -445,6 +504,19 @@ function beginExecution(){
     },200);
 }
 
+function hardcoreUnlocked(){
+    return localStorage.getItem("hardcore_unlocked") === "1";
+}
+
+function unlockHardcore(){
+    if(hardcoreUnlocked()) return;
+
+    localStorage.setItem("hardcore_unlocked", "1");
+
+    messageText.textContent = "HARDCORE MODE UNLOCKED";
+    messageText.className = "success";
+}
+
 function levelComplete(){
     messageText.textContent = "ACCESS GRANTED — LEVEL CLEARED";
     messageText.className = "success";
@@ -453,11 +525,16 @@ function levelComplete(){
 
     setTimeout(()=>{
         level++;
-        if(gridSize < MAX_LEVEL_SIZE){
+        if(gridSize < maxGridSize()){
             gridSize++;
         }
         
         startLevel();
+
+        // reach level 20 on hard mode and hardcore opens up
+        if(mode === "hard" && level >= HARDCORE_UNLOCK_LEVEL){
+            unlockHardcore();
+        }
     },2000);
 }
 
@@ -525,8 +602,8 @@ function draw(){
     }
 
     // Exit portal
-    const ex = (gridSize - 1) * tileSize;
-    const ey = (gridSize - 1) * tileSize;
+    const ex = exitX * tileSize;
+    const ey = exitY * tileSize;
 
     ctx.beginPath();
     ctx.fillStyle = "#ffffff";

@@ -157,6 +157,15 @@
 
 <body>
 
+<!-- Background music: loops from the start once it reaches the end -->
+<audio id="bgm" src="Stutter.mp3" loop preload="auto"></audio>
+
+<!-- Step sound: one blip for every square the orb moves in execution mode -->
+<audio id="blip" src="blip.mp3" preload="auto"></audio>
+
+<!-- Death sound: retro game over jingle, only for wall crashes -->
+<audio id="death" src="gameover.mp3" preload="auto"></audio>
+
 <div id="gameContainer">
     <h1>C0D3P@TH3R$</h1>
 
@@ -219,6 +228,77 @@ const messageText = document.getElementById("message");
 
 const MAX_LEVEL_SIZE = 15;
 const START_SIZE = 8;
+
+/* ===== BACKGROUND MUSIC ===== */
+const bgm = document.getElementById("bgm");
+
+bgm.volume = 0.4;
+
+// true while the game over jingle owns the audio, keeps the song from creeping back in
+let deathSequenceActive = false;
+
+function startMusic(){
+    if(deathSequenceActive) return;
+    if(!bgm.paused) return;
+    bgm.play().catch(()=>{});
+}
+
+// Browsers block sound until the player interacts with the page once
+["keydown", "pointerdown", "touchstart"].forEach(evt => {
+    window.addEventListener(evt, startMusic);
+});
+
+// Safety net: rewind and replay if the track ever reaches its end
+bgm.addEventListener("ended", () => {
+    bgm.currentTime = 0;
+    startMusic();
+});
+
+startMusic();
+
+/* ===== STEP BLIP ===== */
+const blip = document.getElementById("blip");
+
+blip.volume = 0.5;
+
+function playBlip(){
+    // restart from the top so every step fires its own blip
+    blip.currentTime = 0;
+    blip.play().catch(()=>{});
+}
+
+/* ===== GAME OVER SOUND ===== */
+const deathSound = document.getElementById("death");
+
+deathSound.volume = 0.7;
+
+function playDeathSound(){
+    // cut the song, play the jingle, then restart the song from the top
+    deathSequenceActive = true;
+
+    bgm.pause();
+
+    let finished = false;
+
+    function finishDeathSound(){
+        if(finished) return;
+        finished = true;
+
+        deathSequenceActive = false;
+        bgm.currentTime = 0;
+        startMusic();
+
+        setTimeout(() => {
+            window.location.href = "./index.html";
+        }, 900);
+    }
+
+    deathSound.currentTime = 0;
+    deathSound.addEventListener("ended", finishDeathSound, { once: true });
+
+    // safety net: a blocked or broken sound must never hang the death screen
+    deathSound.play().catch(() => setTimeout(finishDeathSound, 900));
+}
 
 let level = 1;
 let gridSize = START_SIZE;
@@ -344,19 +424,20 @@ function beginExecution(){
             return;
         }
 
-        // Wall crash
+        // Wall crash (the orb is drawn inside the wall, this is the death jingle)
         if(grid[ny][nx] === 1){
             clearInterval(playback);
             executionPlayer.x = nx;
             executionPlayer.y = ny;
             draw();
-            gameOver("SYSTEM CRASH: GAME OVER");
+            gameOver("SYSTEM CRASH: GAME OVER", true);
             return;
         }
 
         executionPlayer.x = nx;
         executionPlayer.y = ny;
 
+        playBlip();
         draw();
 
         index++;
@@ -380,7 +461,7 @@ function levelComplete(){
     },2000);
 }
 
-function gameOver(msg){
+function gameOver(msg, crashedIntoWall){
     inputPhase = false;
     executing = false;
 
@@ -396,6 +477,12 @@ function gameOver(msg){
     messageText.className = "danger";
 
     redPulse(); 
+
+    // Crashing into a wall hands the audio over to the retro game over jingle
+    if(crashedIntoWall){
+        playDeathSound();
+        return;
+    }
 
     setTimeout(() => {
     window.location.href = "./index.html";

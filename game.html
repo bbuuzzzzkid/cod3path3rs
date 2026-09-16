@@ -203,6 +203,7 @@
 
 </div>
 <script src="pathfinder.js"></script>
+<script src="highscore.js"></script>
 <script>
 let playback = null; 
 let mode = localStorage.getItem("mode") || "medium";
@@ -380,7 +381,6 @@ function levelComplete(){
 }
 
 function gameOver(msg){
-    alert("GAME OVER FIRED");
     inputPhase = false;
     executing = false;
 

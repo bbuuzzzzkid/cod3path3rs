@@ -152,6 +152,67 @@
     transform: scale(1.05);
 }
 
+    /* ===== COLOR PICKER (unlockable) ===== */
+
+#colorPanel {
+    display: none;
+    margin-top: 12px;
+    padding: 10px;
+    border: 1px solid #00ff88;
+    border-radius: 8px;
+    background: rgba(0,255,136,0.05);
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,255,136,0.15);
+}
+
+.targetBtn, #freeToggle {
+    margin: 4px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-family: "Courier New", monospace;
+    background: transparent;
+    color: #00ff88;
+    border: 1px solid #00ff88;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.targetBtn.active, #freeToggle.active {
+    background: #00ff88;
+    color: #000;
+}
+
+.swatch {
+    width: 26px;
+    height: 26px;
+    margin: 3px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.swatch.picked {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+#freeRow {
+    display: none;
+    margin-top: 6px;
+}
+
+#freeColor {
+    width: 44px;
+    height: 28px;
+    margin-left: 8px;
+    padding: 0;
+    border: 1px solid #00ff88;
+    background: transparent;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
 </style>
 </head>
 
@@ -208,6 +269,20 @@
 
     <canvas id="gameCanvas" width="640" height="640"></canvas>
 
+    <!-- unlockable color picker: stays hidden until level 15 on medium or hard -->
+    <div id="colorPanel">
+        <div class="label">COLOR PICKER</div>
+        <div>
+            <button id="targetBgBtn" class="targetBtn">BACKGROUND</button>
+            <button id="targetOrbBtn" class="targetBtn">ORB</button>
+        </div>
+        <div id="swatches"></div>
+        <div id="freeRow">
+            <button id="freeToggle">FREE MODE: OFF</button>
+            <input id="freeColor" type="color" value="#00ff88">
+        </div>
+    </div>
+
     <div id="message"></div>
 
 </div>
@@ -236,6 +311,8 @@ const HARDCORE_UNLOCK_LEVEL = 20;  // reach level 20 on hard mode to unlock it
 const HARDCORE_MUSIC_RATE = 1.5;   // hardcore plays the soundtrack 1.5x faster
 const BASE_TIME = 30;              // seconds granted on level 1
 const TIME_PER_LEVEL = 0.5;        // extra seconds granted for every level cleared
+const COLOR_UNLOCK_LEVEL = 15;     // reach level 15 on medium or hard for the color picker
+const FREE_COLOR_UNLOCK_LEVEL = 5; // reach level 5 in hardcore for free color mode
 
 /* ===== BACKGROUND MUSIC ===== */
 const bgm = document.getElementById("bgm");
@@ -310,6 +387,170 @@ function playDeathSound(){
     // safety net: a blocked or broken sound must never hang the death screen
     deathSound.play().catch(() => setTimeout(finishDeathSound, 900));
 }
+
+/* ===== COLOR PICKER ===== */
+const colorPanel = document.getElementById("colorPanel");
+const swatches = document.getElementById("swatches");
+const freeRow = document.getElementById("freeRow");
+const freeToggle = document.getElementById("freeToggle");
+const freeColor = document.getElementById("freeColor");
+const targetBgBtn = document.getElementById("targetBgBtn");
+const targetOrbBtn = document.getElementById("targetOrbBtn");
+
+const COLOR_CHOICES = [
+    { name: "green",  hex: "#00ff88" },
+    { name: "blue",   hex: "#3aa0ff" },
+    { name: "pink",   hex: "#ff5fd2" },
+    { name: "purple", hex: "#a86bff" },
+    { name: "cyan",   hex: "#3cffea" },
+    { name: "yellow", hex: "#ffe63c" },
+    { name: "orange", hex: "#ff9d3c" },
+    { name: "red",    hex: "#ff3c3c" },
+    { name: "white",  hex: "#ffffff" },
+    { name: "black",  hex: "#000000" }
+];
+
+// a saved color only counts if it is a clean hex, otherwise fall back to the default
+function loadColor(key, fallback){
+    const saved = localStorage.getItem(key);
+
+    return /^#[0-9a-f]{6}$/i.test(saved) ? saved : fallback;
+}
+
+let bgColor = loadColor("bg_color", "#000000");
+let orbColor = loadColor("orb_color", "#00ff88");
+let colorTarget = localStorage.getItem("color_target") === "bg" ? "bg" : "orb";
+let freeMode = localStorage.getItem("free_mode") === "1";
+
+function colorsUnlocked(){
+    return localStorage.getItem("colors_unlocked") === "1";
+}
+
+function freeColorsUnlocked(){
+    return localStorage.getItem("freecolor_unlocked") === "1";
+}
+
+function targetColor(){
+    return colorTarget === "bg" ? bgColor : orbColor;
+}
+
+function setColor(hex){
+    if(!/^#[0-9a-f]{6}$/i.test(hex)) return;
+
+    if(colorTarget === "bg"){
+        bgColor = hex;
+        localStorage.setItem("bg_color", hex);
+    }else{
+        orbColor = hex;
+        localStorage.setItem("orb_color", hex);
+    }
+
+    freeColor.value = hex;
+    draw();
+    updateSwatchHighlight();
+}
+
+function updateSwatchHighlight(){
+    const picked = targetColor();
+
+    swatches.childNodes.forEach(btn => {
+        if(!btn.dataset) return;
+
+        btn.className = btn.dataset.hex === picked ? "swatch picked" : "swatch";
+    });
+}
+
+function setFreeMode(on){
+    freeMode = on === true && freeColorsUnlocked();
+
+    localStorage.setItem("free_mode", freeMode ? "1" : "0");
+
+    swatches.style.display = freeMode ? "none" : "block";
+    freeRow.style.display = freeColorsUnlocked() ? "block" : "none";
+    freeColor.style.display = freeMode ? "inline-block" : "none";
+    freeToggle.textContent = freeMode ? "FREE MODE: ON" : "FREE MODE: OFF";
+    freeToggle.className = freeMode ? "active" : "";
+
+    if(freeMode) freeColor.value = targetColor();
+}
+
+function setColorTarget(target){
+    colorTarget = target === "bg" ? "bg" : "orb";
+    localStorage.setItem("color_target", colorTarget);
+
+    targetBgBtn.className = colorTarget === "bg" ? "targetBtn active" : "targetBtn";
+    targetOrbBtn.className = colorTarget === "orb" ? "targetBtn active" : "targetBtn";
+
+    freeColor.value = targetColor();
+    updateSwatchHighlight();
+}
+
+function buildSwatches(){
+    COLOR_CHOICES.forEach(choice => {
+        const btn = document.createElement("button");
+
+        btn.className = "swatch";
+        btn.style.background = choice.hex;
+        btn.dataset.hex = choice.hex;
+        btn.title = choice.name;
+
+        btn.addEventListener("click", () => {
+            setColor(choice.hex);
+            btn.blur(); // hand the keyboard back to the game
+        });
+
+        swatches.appendChild(btn);
+    });
+}
+
+function refreshColorPanel(){
+    colorPanel.style.display = colorsUnlocked() ? "block" : "none";
+
+    if(!colorsUnlocked()) return;
+
+    setColorTarget(colorTarget);
+    setFreeMode(freeMode);
+}
+
+function unlockColors(){
+    if(colorsUnlocked()) return;
+
+    localStorage.setItem("colors_unlocked", "1");
+    refreshColorPanel();
+
+    messageText.textContent = "COLOR PICKER UNLOCKED";
+    messageText.className = "success";
+}
+
+function unlockFreeColors(){
+    if(freeColorsUnlocked()) return;
+
+    localStorage.setItem("freecolor_unlocked", "1");
+    refreshColorPanel();
+
+    messageText.textContent = "FREE COLOR MODE UNLOCKED";
+    messageText.className = "success";
+}
+
+targetBgBtn.addEventListener("click", () => {
+    setColorTarget("bg");
+    targetBgBtn.blur();
+});
+
+targetOrbBtn.addEventListener("click", () => {
+    setColorTarget("orb");
+    targetOrbBtn.blur();
+});
+
+freeToggle.addEventListener("click", () => {
+    setFreeMode(!freeMode);
+    freeToggle.blur();
+});
+
+freeColor.addEventListener("input", () => setColor(freeColor.value));
+
+buildSwatches();
+refreshColorPanel();
 
 let level = 1;
 let gridSize = START_SIZE;
@@ -531,7 +772,17 @@ function levelComplete(){
         
         startLevel();
 
-        // reach level 20 on hard mode and hardcore opens up
+        // reach level 15 on medium or hard and the color picker opens up
+        if((mode === "medium" || mode === "hard") && level >= COLOR_UNLOCK_LEVEL){
+            unlockColors();
+        }
+
+        // reach level 5 in hardcore and free color mode opens up
+        if(mode === "hardcore" && level >= FREE_COLOR_UNLOCK_LEVEL){
+            unlockFreeColors();
+        }
+
+        // reach level 20 on hard mode and hardcore opens up (announced last, it is the big one)
         if(mode === "hard" && level >= HARDCORE_UNLOCK_LEVEL){
             unlockHardcore();
         }
@@ -568,7 +819,7 @@ function gameOver(msg, crashedIntoWall){
 
 function draw(){
     if (!grid || !grid.length) return;
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = bgColor;
     ctx.fillRect(0,0,canvas.width,canvas.height);
     const tileSize = canvas.width / gridSize;
 
@@ -624,8 +875,8 @@ function draw(){
 
     ctx.beginPath();
 
-    ctx.fillStyle = "#00ff88";
-    ctx.shadowColor = "#00ff88";
+    ctx.fillStyle = orbColor;
+    ctx.shadowColor = orbColor;
     ctx.shadowBlur = 20;
 
     ctx.arc(

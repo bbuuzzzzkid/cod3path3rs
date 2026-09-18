@@ -269,7 +269,7 @@
 
     <canvas id="gameCanvas" width="640" height="640"></canvas>
 
-    <!-- unlockable color picker: stays hidden until level 15 on medium or hard -->
+    <!-- unlockable color picker: stays hidden until level 10 on medium or hard -->
     <div id="colorPanel">
         <div class="label">COLOR PICKER</div>
         <div>
@@ -311,7 +311,7 @@ const HARDCORE_UNLOCK_LEVEL = 20;  // reach level 20 on hard mode to unlock it
 const HARDCORE_MUSIC_RATE = 1.5;   // hardcore plays the soundtrack 1.5x faster
 const BASE_TIME = 30;              // seconds granted on level 1
 const TIME_PER_LEVEL = 0.5;        // extra seconds granted for every level cleared
-const COLOR_UNLOCK_LEVEL = 15;     // reach level 15 on medium or hard for the color picker
+const COLOR_UNLOCK_LEVEL = 10;     // reach level 10 on medium or hard for the color picker
 const FREE_COLOR_UNLOCK_LEVEL = 5; // reach level 5 in hardcore for free color mode
 
 /* ===== BACKGROUND MUSIC ===== */
@@ -772,7 +772,7 @@ function levelComplete(){
         
         startLevel();
 
-        // reach level 15 on medium or hard and the color picker opens up
+        // reach level 10 on medium or hard and the color picker opens up
         if((mode === "medium" || mode === "hard") && level >= COLOR_UNLOCK_LEVEL){
             unlockColors();
         }

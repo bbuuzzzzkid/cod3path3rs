@@ -6,6 +6,16 @@
 <title>P@thf!nd3er</title>
 
 <style>
+    /* theme colours: JS retints these when the player picks a colour */
+    :root{
+        --accent:#00ff88;
+        --accent-rgb:0,255,136;
+        --accent-soft:#8cffd2;
+        --accent-dim:#7cffc4;
+        --bg-deep:#020403;
+        --bg-panel:#05110c;
+    }
+
     *{
         margin:0;
         padding:0;
@@ -14,8 +24,8 @@
     }
 
     body{
-        background:#020403;
-        color:#00ff88;
+        background:var(--bg-deep);
+        color:var(--accent);
         overflow:hidden;
         display:flex;
         justify-content:center;
@@ -26,12 +36,12 @@
     #gameContainer{
         width:95vw;
         max-width:900px;
-        border:2px solid #00ff88;
+        border:2px solid var(--accent);
         box-shadow:
-            0 0 10px #00ff88,
-            0 0 30px rgba(0,255,136,0.4),
-            inset 0 0 20px rgba(0,255,136,0.15);
-        background:#05110c;
+            0 0 10px var(--accent),
+            0 0 30px rgba(var(--accent-rgb),0.4),
+            inset 0 0 20px rgba(var(--accent-rgb),0.15);
+        background:var(--bg-panel);
         padding:18px;
         border-radius:12px;
     }
@@ -39,8 +49,8 @@
     h1{
         text-align:center;
         margin-bottom:10px;
-        color:#8cffd2;
-        text-shadow:0 0 8px #00ff88;
+        color:var(--accent-soft);
+        text-shadow:0 0 8px var(--accent);
         letter-spacing:3px;
     }
 
@@ -55,15 +65,15 @@
     .panel{
         flex:1;
         min-width:180px;
-        border:1px solid #00ff88;
+        border:1px solid var(--accent);
         padding:10px;
         border-radius:8px;
-        background:rgba(0,255,136,0.05);
-        box-shadow:0 0 10px rgba(0,255,136,0.15);
+        background:rgba(var(--accent-rgb),0.05);
+        box-shadow:0 0 10px rgba(var(--accent-rgb),0.15);
     }
 
     .label{
-        color:#8cffd2;
+        color:var(--accent-soft);
         margin-bottom:5px;
     }
 
@@ -77,12 +87,12 @@
     canvas {
     width: 100%;
     background: #000;
-    border: 2px solid #00ff88;
+    border: 2px solid var(--accent);
     image-rendering: pixelated;
     border-radius: 8px;
     box-shadow:
-        0 0 20px rgba(0,255,136,0.4),
-        inset 0 0 20px rgba(0,255,136,0.15);
+        0 0 20px rgba(var(--accent-rgb),0.4),
+        inset 0 0 20px rgba(var(--accent-rgb),0.15);
     } 
 
     #message{
@@ -98,7 +108,7 @@
     #controls{
         margin-top:10px;
         text-align:center;
-        color:#7cffc4;
+        color:var(--accent-dim);
         font-size:14px;
         line-height:1.6;
     }
@@ -122,9 +132,9 @@
 #timerBarContainer {
     width: 100%;
     height: 18px;
-    border: 1px solid #00ff88;
+    border: 1px solid var(--accent);
     background: rgba(0, 0, 0, 0.6);
-    box-shadow: inset 0 0 10px rgba(0, 255, 136, 0.2);
+    box-shadow: inset 0 0 10px rgba(var(--accent-rgb), 0.2);
     border-radius: 6px;
     overflow: hidden;
 }
@@ -132,20 +142,20 @@
 #timerBar {
     height: 100%;
     width: 100%;
-    background: linear-gradient(90deg, #00ff88, #ffffff);
-    box-shadow: 0 0 12px #00ff88;
+    background: linear-gradient(90deg, var(--accent), #ffffff);
+    box-shadow: 0 0 12px var(--accent);
     transition: width 0.2s linear;
 }
 
 #goButton {
     margin-top: 10px;
     padding: 10px 20px;
-    background: #00ff88;
+    background: var(--accent);
     border: none;
     color: black;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 0 10px #00ff88;
+    box-shadow: 0 0 10px var(--accent);
 }
 
 #goButton:hover {
@@ -158,11 +168,11 @@
     display: none;
     margin-top: 12px;
     padding: 10px;
-    border: 1px solid #00ff88;
+    border: 1px solid var(--accent);
     border-radius: 8px;
-    background: rgba(0,255,136,0.05);
+    background: rgba(var(--accent-rgb),0.05);
     text-align: center;
-    box-shadow: 0 0 10px rgba(0,255,136,0.15);
+    box-shadow: 0 0 10px rgba(var(--accent-rgb),0.15);
 }
 
 .targetBtn, #freeToggle {
@@ -171,14 +181,14 @@
     font-size: 12px;
     font-family: "Courier New", monospace;
     background: transparent;
-    color: #00ff88;
-    border: 1px solid #00ff88;
+    color: var(--accent);
+    border: 1px solid var(--accent);
     border-radius: 4px;
     cursor: pointer;
 }
 
 .targetBtn.active, #freeToggle.active {
-    background: #00ff88;
+    background: var(--accent);
     color: #000;
 }
 
@@ -207,7 +217,7 @@
     height: 28px;
     margin-left: 8px;
     padding: 0;
-    border: 1px solid #00ff88;
+    border: 1px solid var(--accent);
     background: transparent;
     cursor: pointer;
     vertical-align: middle;
@@ -273,7 +283,7 @@
     <div id="colorPanel">
         <div class="label">COLOR PICKER</div>
         <div>
-            <button id="targetBgBtn" class="targetBtn">BACKGROUND</button>
+            <button id="targetWallBtn" class="targetBtn">WALLS</button>
             <button id="targetOrbBtn" class="targetBtn">ORB</button>
         </div>
         <div id="swatches"></div>
@@ -388,15 +398,16 @@ function playDeathSound(){
     deathSound.play().catch(() => setTimeout(finishDeathSound, 900));
 }
 
-/* ===== COLOR PICKER ===== */
+/* ===== COLOR PICKER / THEME ===== */
 const colorPanel = document.getElementById("colorPanel");
 const swatches = document.getElementById("swatches");
 const freeRow = document.getElementById("freeRow");
 const freeToggle = document.getElementById("freeToggle");
 const freeColor = document.getElementById("freeColor");
-const targetBgBtn = document.getElementById("targetBgBtn");
+const targetWallBtn = document.getElementById("targetWallBtn");
 const targetOrbBtn = document.getElementById("targetOrbBtn");
 
+// bright neons only, so the glow style survives whatever you pick
 const COLOR_CHOICES = [
     { name: "green",  hex: "#00ff88" },
     { name: "blue",   hex: "#3aa0ff" },
@@ -405,10 +416,52 @@ const COLOR_CHOICES = [
     { name: "cyan",   hex: "#3cffea" },
     { name: "yellow", hex: "#ffe63c" },
     { name: "orange", hex: "#ff9d3c" },
-    { name: "red",    hex: "#ff3c3c" },
-    { name: "white",  hex: "#ffffff" },
-    { name: "black",  hex: "#000000" }
+    { name: "red",    hex: "#ff3c3c" }
 ];
+
+const DEFAULT_COLOR = "#00ff88";
+const WALL_SHADE = 0.33;   // walls render 33% darker than the pick, exactly like the original
+const MIN_ACCENT = 150;    // keeps the UI readable even after a very dark pick
+const MIN_VISIBLE = 90;    // keeps walls and orb visible on the black board
+
+function hexToRgb(hex){
+    return [
+        parseInt(hex.slice(1,3), 16),
+        parseInt(hex.slice(3,5), 16),
+        parseInt(hex.slice(5,7), 16)
+    ];
+}
+
+function rgbToHex(rgb){
+    return "#" + rgb.map(v => {
+        const c = Math.max(0, Math.min(255, Math.round(v)));
+
+        return c.toString(16).padStart(2, "0");
+    }).join("");
+}
+
+function mix(hex, other, amount){
+    const a = hexToRgb(hex);
+    const b = hexToRgb(other);
+
+    return rgbToHex(a.map((v, i) => v + (b[i] - v) * amount));
+}
+
+function darken(hex, amount){ return mix(hex, "#000000", amount); }
+function lighten(hex, amount){ return mix(hex, "#ffffff", amount); }
+
+// a very dark pick would hide the walls / orb / whole UI, so nudge it back up
+function ensureVisible(hex, floor){
+    const rgb = hexToRgb(hex);
+
+    if(Math.max(rgb[0], rgb[1], rgb[2]) >= floor) return hex;
+
+    return lighten(hex, 0.55);
+}
+
+function rgba(hex, alpha){
+    return "rgba(" + hexToRgb(hex).join(",") + "," + alpha + ")";
+}
 
 // a saved color only counts if it is a clean hex, otherwise fall back to the default
 function loadColor(key, fallback){
@@ -417,10 +470,28 @@ function loadColor(key, fallback){
     return /^#[0-9a-f]{6}$/i.test(saved) ? saved : fallback;
 }
 
-let bgColor = loadColor("bg_color", "#000000");
-let orbColor = loadColor("orb_color", "#00ff88");
-let colorTarget = localStorage.getItem("color_target") === "bg" ? "bg" : "orb";
+let orbColor = loadColor("orb_color", DEFAULT_COLOR);
+let wallColor = loadColor("wall_color", DEFAULT_COLOR);
+let colorTarget = localStorage.getItem("color_target") === "walls" ? "walls" : "orb";
 let freeMode = localStorage.getItem("free_mode") === "1";
+
+// walls: a darker shade of the pick for the block, the pick itself for the glow
+function wallTone(){ return ensureVisible(wallColor, MIN_VISIBLE); }
+function wallShade(){ return darken(wallTone(), WALL_SHADE); }
+
+// the orb color drives the page chrome too, so the UI never clashes with the board
+function accentColor(){ return ensureVisible(orbColor, MIN_ACCENT); }
+
+function applyTheme(){
+    const accent = accentColor();
+
+    document.documentElement.style.setProperty("--accent", accent);
+    document.documentElement.style.setProperty("--accent-rgb", hexToRgb(accent).join(","));
+    document.documentElement.style.setProperty("--accent-soft", lighten(accent, 0.5));
+    document.documentElement.style.setProperty("--accent-dim", lighten(accent, 0.4));
+    document.documentElement.style.setProperty("--bg-deep", darken(accent, 0.97));
+    document.documentElement.style.setProperty("--bg-panel", darken(accent, 0.94));
+}
 
 function colorsUnlocked(){
     return localStorage.getItem("colors_unlocked") === "1";
@@ -431,21 +502,22 @@ function freeColorsUnlocked(){
 }
 
 function targetColor(){
-    return colorTarget === "bg" ? bgColor : orbColor;
+    return colorTarget === "walls" ? wallColor : orbColor;
 }
 
 function setColor(hex){
     if(!/^#[0-9a-f]{6}$/i.test(hex)) return;
 
-    if(colorTarget === "bg"){
-        bgColor = hex;
-        localStorage.setItem("bg_color", hex);
+    if(colorTarget === "walls"){
+        wallColor = hex;
+        localStorage.setItem("wall_color", hex);
     }else{
         orbColor = hex;
         localStorage.setItem("orb_color", hex);
     }
 
     freeColor.value = hex;
+    applyTheme();
     draw();
     updateSwatchHighlight();
 }
@@ -475,10 +547,10 @@ function setFreeMode(on){
 }
 
 function setColorTarget(target){
-    colorTarget = target === "bg" ? "bg" : "orb";
+    colorTarget = target === "walls" ? "walls" : "orb";
     localStorage.setItem("color_target", colorTarget);
 
-    targetBgBtn.className = colorTarget === "bg" ? "targetBtn active" : "targetBtn";
+    targetWallBtn.className = colorTarget === "walls" ? "targetBtn active" : "targetBtn";
     targetOrbBtn.className = colorTarget === "orb" ? "targetBtn active" : "targetBtn";
 
     freeColor.value = targetColor();
@@ -532,9 +604,9 @@ function unlockFreeColors(){
     messageText.className = "success";
 }
 
-targetBgBtn.addEventListener("click", () => {
-    setColorTarget("bg");
-    targetBgBtn.blur();
+targetWallBtn.addEventListener("click", () => {
+    setColorTarget("walls");
+    targetWallBtn.blur();
 });
 
 targetOrbBtn.addEventListener("click", () => {
@@ -549,6 +621,7 @@ freeToggle.addEventListener("click", () => {
 
 freeColor.addEventListener("input", () => setColor(freeColor.value));
 
+applyTheme();
 buildSwatches();
 refreshColorPanel();
 
@@ -819,9 +892,14 @@ function gameOver(msg, crashedIntoWall){
 
 function draw(){
     if (!grid || !grid.length) return;
-    ctx.fillStyle = bgColor;
+    ctx.fillStyle = "#000";
     ctx.fillRect(0,0,canvas.width,canvas.height);
     const tileSize = canvas.width / gridSize;
+
+    // walls and grid lines are tones of the picked wall color, so the glow style holds
+    const blockGlow = wallTone();
+    const blockShade = wallShade();
+    const tileTint = rgba(blockGlow, 0.15);
 
     // Background glow
     
@@ -833,13 +911,13 @@ function draw(){
             const py = y * tileSize;
 
             // Tile border
-            ctx.strokeStyle = "rgba(0,255,136,0.15)";
+            ctx.strokeStyle = tileTint;
             ctx.strokeRect(px, py, tileSize, tileSize);
 
             if(grid[y][x] === 1){
 
-                ctx.fillStyle = "#00aa55";
-                ctx.shadowColor = "#00ff88";
+                ctx.fillStyle = blockShade;
+                ctx.shadowColor = blockGlow;
                 ctx.shadowBlur = 10;
 
                 ctx.fillRect(
@@ -924,12 +1002,14 @@ window.addEventListener("keydown",(e)=>{
 function pulseBorder() {
     let i = 0;
 
+    const accent = accentColor();
+
     const colors = [
-        "#00ff88",
+        accent,
         "#ffffff",
-        "#00ff88",
+        accent,
         "#ffffff",
-        "#00ff88",
+        accent,
         "#ffffff"
     ];
 
@@ -941,8 +1021,8 @@ function pulseBorder() {
 
         if (i >= colors.length) {
             clearInterval(interval);
-            canvas.style.borderColor = "#00ff88";
-            canvas.style.boxShadow = "0 0 50px rgba(0,255,136,0.4)";
+            canvas.style.borderColor = accent;
+            canvas.style.boxShadow = "0 0 50px " + rgba(accent, 0.4);
         }
     }, 120);
 }
@@ -956,7 +1036,7 @@ function redPulse() {
     // return to normal glow
     setTimeout(() => {
         canvas.style.transition = "box-shadow 1s ease";
-        canvas.style.boxShadow = "0 0 20px rgba(0,255,136,0.4)";
+        canvas.style.boxShadow = "0 0 20px " + rgba(accentColor(), 0.4);
     }, 300);
 }
 

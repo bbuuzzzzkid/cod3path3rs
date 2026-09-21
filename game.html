@@ -427,7 +427,7 @@ const WALL_BLOOM = [
     { radius: 0.5, alpha: 0.9 },
     { radius: 1.4, alpha: 0.5 }
 ];
-const WALL_ROUND = 0.18;   // wall corner radius, as a fraction of a tile
+const WALL_ROUND = 0.12;   // wall corner radius, as a fraction of a tile
 const MIN_ACCENT = 150;    // keeps the UI readable even after a very dark pick
 const MIN_VISIBLE = 90;    // keeps walls and orb visible on the black board
 
@@ -896,10 +896,28 @@ function gameOver(msg, crashedIntoWall){
 }, 900);
 }
 
-// one wall block, rounded so the bloom wraps the corners instead of squaring them off
-function wallBlock(px, py, size){
+// a corner only stays round where it is actually exposed. Where two wall cells meet
+// the join is squared off, so the walls read as one shape instead of a row of loose
+// tiles, and no rounded edge cuts into an interior grid corner.
+function wallRadii(gx, gy, size){
+    const r = size * WALL_ROUND;
+    const up = gy > 0 && grid[gy - 1][gx] === 1;
+    const down = gy < gridSize - 1 && grid[gy + 1][gx] === 1;
+    const left = gx > 0 && grid[gy][gx - 1] === 1;
+    const right = gx < gridSize - 1 && grid[gy][gx + 1] === 1;
+
+    return [
+        (!up && !left) ? r : 0,      // top left
+        (!up && !right) ? r : 0,     // top right
+        (!down && !right) ? r : 0,   // bottom right
+        (!down && !left) ? r : 0     // bottom left
+    ];
+}
+
+// one wall block: the whole cell, rounded only on its exposed edges
+function wallBlock(gx, gy, size){
     ctx.beginPath();
-    ctx.roundRect(px + 4, py + 4, size - 8, size - 8, size * WALL_ROUND);
+    ctx.roundRect(gx * size, gy * size, size, size, wallRadii(gx, gy, size));
     ctx.fill();
 }
 
@@ -939,7 +957,7 @@ function draw(){
             for(let x=0;x<gridSize;x++){
 
                 if(grid[y][x] === 1){
-                    wallBlock(x * tileSize, y * tileSize, tileSize);
+                    wallBlock(x, y, tileSize);
                 }
             }
         }
@@ -953,7 +971,7 @@ function draw(){
         for(let x=0;x<gridSize;x++){
 
             if(grid[y][x] === 1){
-                wallBlock(x * tileSize, y * tileSize, tileSize);
+                wallBlock(x, y, tileSize);
             }
         }
     }

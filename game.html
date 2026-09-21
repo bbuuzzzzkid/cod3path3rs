@@ -420,7 +420,13 @@ const COLOR_CHOICES = [
 ];
 
 const DEFAULT_COLOR = "#00ff88";
-const WALL_GLOW_BLUR = 30; // wide bloom around each solid wall slab
+// wall bloom layers: a tight glow hugging the slab, then a wide soft one that
+// bleeds into the corridors. Radii are measured in tiles so a 4x4 board and a
+// 20x20 board glow the same instead of flooding on the dense levels.
+const WALL_BLOOM = [
+    { radius: 0.5, alpha: 0.9 },
+    { radius: 1.4, alpha: 0.5 }
+];
 const MIN_ACCENT = 150;    // keeps the UI readable even after a very dark pick
 const MIN_VISIBLE = 90;    // keeps walls and orb visible on the black board
 
@@ -902,22 +908,55 @@ function draw(){
     // Background glow
     
 
+    // grid lines go down first, so a wall's bloom is free to spill over them
+    for(let y=0;y<gridSize;y++){
+        for(let x=0;x<gridSize;x++){
+
+            ctx.strokeStyle = tileTint;
+            ctx.strokeRect(x * tileSize, y * tileSize, tileSize, tileSize);
+        }
+    }
+
+    // bloom passes: every wall glows BEFORE any slab is laid down, so one slab can
+    // never paint over a neighbouring wall's glow
+    ctx.fillStyle = blockGlow;
+    ctx.shadowColor = blockGlow;
+
+    WALL_BLOOM.forEach(layer => {
+
+        ctx.shadowBlur = tileSize * layer.radius;
+        ctx.globalAlpha = layer.alpha;
+
+        for(let y=0;y<gridSize;y++){
+            for(let x=0;x<gridSize;x++){
+
+                const px = x * tileSize;
+                const py = y * tileSize;
+
+                if(grid[y][x] === 1){
+
+                    ctx.fillRect(
+                        px + 4,
+                        py + 4,
+                        tileSize - 8,
+                        tileSize - 8
+                    );
+                }
+            }
+        }
+    });
+
+    // slab pass: the solid lit block sitting in its own glow
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+
     for(let y=0;y<gridSize;y++){
         for(let x=0;x<gridSize;x++){
 
             const px = x * tileSize;
             const py = y * tileSize;
 
-            // Tile border
-            ctx.strokeStyle = tileTint;
-            ctx.strokeRect(px, py, tileSize, tileSize);
-
             if(grid[y][x] === 1){
-
-                // solid glowing slab: full-brightness block under a wide bloom, no rim
-                ctx.fillStyle = blockGlow;
-                ctx.shadowColor = blockGlow;
-                ctx.shadowBlur = WALL_GLOW_BLUR;
 
                 ctx.fillRect(
                     px + 4,

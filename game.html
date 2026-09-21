@@ -427,6 +427,7 @@ const WALL_BLOOM = [
     { radius: 0.5, alpha: 0.9 },
     { radius: 1.4, alpha: 0.5 }
 ];
+const WALL_ROUND = 0.18;   // wall corner radius, as a fraction of a tile
 const MIN_ACCENT = 150;    // keeps the UI readable even after a very dark pick
 const MIN_VISIBLE = 90;    // keeps walls and orb visible on the black board
 
@@ -895,6 +896,13 @@ function gameOver(msg, crashedIntoWall){
 }, 900);
 }
 
+// one wall block, rounded so the bloom wraps the corners instead of squaring them off
+function wallBlock(px, py, size){
+    ctx.beginPath();
+    ctx.roundRect(px + 4, py + 4, size - 8, size - 8, size * WALL_ROUND);
+    ctx.fill();
+}
+
 function draw(){
     if (!grid || !grid.length) return;
     ctx.fillStyle = "#000";
@@ -930,17 +938,8 @@ function draw(){
         for(let y=0;y<gridSize;y++){
             for(let x=0;x<gridSize;x++){
 
-                const px = x * tileSize;
-                const py = y * tileSize;
-
                 if(grid[y][x] === 1){
-
-                    ctx.fillRect(
-                        px + 4,
-                        py + 4,
-                        tileSize - 8,
-                        tileSize - 8
-                    );
+                    wallBlock(x * tileSize, y * tileSize, tileSize);
                 }
             }
         }
@@ -953,17 +952,8 @@ function draw(){
     for(let y=0;y<gridSize;y++){
         for(let x=0;x<gridSize;x++){
 
-            const px = x * tileSize;
-            const py = y * tileSize;
-
             if(grid[y][x] === 1){
-
-                ctx.fillRect(
-                    px + 4,
-                    py + 4,
-                    tileSize - 8,
-                    tileSize - 8
-                );
+                wallBlock(x * tileSize, y * tileSize, tileSize);
             }
         }
     }
